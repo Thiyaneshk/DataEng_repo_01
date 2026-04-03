@@ -11,6 +11,8 @@ Learning goals:
 from contextlib import contextmanager
 
 import duckdb  # type: ignore
+from sqlalchemy import create_engine  # type: ignore
+from sqlalchemy.engine import Engine
 
 from app.config import get_config
 
@@ -26,18 +28,32 @@ def get_duckdb_connection():
     finally:
         conn.close()
 
-# TODO (you, later):
-# from sqlalchemy import create_engine
-#
-# def get_postgres_engine():
-#     cfg = get_config()
-#     if not cfg.postgres_url:
-#         raise RuntimeError("POSTGRES_URL not set")
-#     return create_engine(cfg.postgres_url)
-#
-# def get_engine():
-#     """Return DuckDB or Postgres based on config."""
-#     cfg = get_config()
-#     if cfg.postgres_url:
-#         return get_postgres_engine()
-#     return get_duckdb_connection()
+
+def get_postgres_engine() -> Engine:
+    cfg = get_config()
+    if not cfg.postgres_url:
+        raise RuntimeError("POSTGRES_URL must be set to use Postgres")
+    return create_engine(cfg.postgres_url)
+
+
+def get_db_engine():
+    cfg = get_config()
+    if cfg.postgres_url:
+        return get_postgres_engine()
+    return None
+
+
+@contextmanager
+def get_connection():
+    cfg = get_config()
+    if cfg.postgres_url:
+        engine = get_postgres_engine()
+        conn = engine.connect()
+        try:
+            yield conn
+        finally:
+            conn.close()
+    else:
+        with get_duckdb_connection() as conn:
+            yield conn
+

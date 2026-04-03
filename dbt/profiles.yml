@@ -4,3 +4,17 @@ default:
     dev:
       type: duckdb
       path: ../data/app.duckdb
+
+postgres:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: postgres
+      user: postgres
+      password: postgres
+      dbname: airflow
+      port: 5432
+      schema: public
+      keepalives_idle: 0
+

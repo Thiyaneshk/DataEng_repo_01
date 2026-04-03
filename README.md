@@ -130,3 +130,44 @@ docker run -d \
   ├── scripts/           # CLI scripts
   └── Dockerfile         # Build configuration
 ```
+
+---
+
+## Docker Compose + Postgres + Airflow (Phase 2)
+
+### Start all services
+
+```bash
+# Ensure .env exists and contains required values
+cp .env.example .env
+
+# Start all services
+docker-compose up -d --build
+```
+
+### Verify services
+
+```bash
+docker-compose ps
+# Streamlit -> http://localhost:8501
+# Airflow Web UI -> http://localhost:8080 (admin/admin)
+# Postgres -> localhost:5432
+```
+
+### Airflow DAG
+
+- `airflow/dags/etl_prices_dag.py` now coordinates:
+  - `load_prices()` into DuckDB
+  - `dbt run --target postgres` into Postgres (via `dbt/profiles.yml`)
+
+### Stop services
+
+```bash
+docker-compose down
+```
+
+### Notes
+
+- In Phase 2, app reads Postgres when `POSTGRES_URL` is set; still falls back to DuckDB.
+- `dbt` profile includes both `duckdb` and `postgres` (use `dbt run --target postgres`).
+
