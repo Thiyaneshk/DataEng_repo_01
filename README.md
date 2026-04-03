@@ -25,3 +25,108 @@ Phase 0 template for:
 6. Initialize dbt inside `dbt/` and point it at DuckDB/Postgres.
 
 7. Add an Airflow DAG in `airflow/dags/` that calls your ETL logic.
+
+---
+
+## Docker Deployment (Phase 1)
+
+### Build Docker Image
+
+```bash
+docker build -t stock-ml:latest .
+```
+
+### Run Container Locally
+
+```bash
+# Create data directory if it doesn't exist
+mkdir -p data
+
+# Run container with DuckDB data volume mounted
+docker run -d \
+  --name stock-ml \
+  -p 8501:8501 \
+  -v $(pwd)/data:/app/data \
+  stock-ml:latest
+```
+
+Then open http://localhost:8501 in your browser.
+
+### Common Docker Commands
+
+```bash
+# View container logs
+docker logs stock-ml
+
+# Follow logs in real-time
+docker logs -f stock-ml
+
+# Check container status
+docker ps
+
+# Stop container
+docker stop stock-ml
+
+# Start container (after stopping)
+docker start stock-ml
+
+# Remove container (stops and deletes)
+docker rm -f stock-ml
+
+# View container stats
+docker stats stock-ml
+
+# Execute command in running container
+docker exec -it stock-ml bash
+```
+
+### Environment Variables
+
+See `.env.example` for all available configuration options. To use custom environment variables:
+
+```bash
+# Copy example to actual .env
+cp .env.example .env
+
+# Run container with env file
+docker run -d \
+  --name stock-ml \
+  -p 8501:8501 \
+  -v $(pwd)/data:/app/data \
+  --env-file .env \
+  stock-ml:latest
+```
+
+### Data Persistence
+
+- Container mounts `./data` (host) to `/app/data` (container)
+- DuckDB database (`app.duckdb`) persists between container restarts
+- Data survives `docker stop` but will be deleted with `docker rm -f` unless volume is backed up
+
+### Port Mapping
+
+- Container runs on port `8501` internally
+- Exposed to host via `http://localhost:8501`
+- To change host port: `-p 9000:8501` maps container 8501 to host 9000
+
+### Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Container exits immediately | Run `docker logs stock-ml` to see errors |
+| App not accessible | Check `docker ps` to verify container is running |
+| Port 8501 already in use | Use different port: `-p 9000:8501` |
+| DuckDB data lost after restart | Verify `-v $(pwd)/data:/app/data` in docker run command |
+| App won't start in container | Ensure all required system dependencies are installed (build-essential in Dockerfile) |
+
+### File Layout (Inside Container)
+
+```
+/app
+  ├── app/               # Streamlit app code
+  ├── data/              # DuckDB database (mounted volume)
+  ├── config/            # Configuration files
+  ├── dbt/               # dbt project
+  ├── scripts/           # CLI scripts
+  └── Dockerfile         # Build configuration
+```
