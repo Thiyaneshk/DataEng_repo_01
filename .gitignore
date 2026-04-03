@@ -29,3 +29,9 @@ data/*.sqlite
 dbt/target/
 dbt/dbt_packages/
 dbt/logs/
+
+# Env files
+.env
+
+# Airflow logs
+airflow/logs/
