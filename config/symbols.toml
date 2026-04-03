@@ -1,0 +1,19 @@
+# Symbol Configuration for Equity Market Data Platform
+
+[symbols]
+AAPL = { market = "US", type = "stock" }
+MSFT = { market = "US", type = "stock" }
+GOOGL = { market = "US", type = "stock" }
+TSLA = { market = "US", type = "stock" }
+SPY = { market = "US", type = "etf" }
+QQQ = { market = "US", type = "etf" }
+"RELIANCE.NS" = { market = "IN", type = "stock" }
+"HDFCBANK.NS" = { market = "IN", type = "stock" }
+"LUPIN.NS" = { market = "IN", type = "stock" }
+"RY.TO" = { market = "CA", type = "stock" }
+"BTC-USD" = { market = "CRYPTO", type = "crypto" }
+
+[settings]
+default_period = "5d"
+default_interval = "5m"
+warmup_period = "60d"

@@ -1,0 +1,30 @@
+# Schema tests for stg_prices.
+#
+# Learning goals:
+# - dbt tests validate your data quality automatically.
+# - Run with: dbt test --profiles-dir .
+
+version: 2
+
+models:
+  - name: stg_prices
+    description: "Cleaned OHLCV market data with derived columns"
+    columns:
+      - name: symbol
+        description: "Ticker symbol"
+        tests:
+          - not_null
+      - name: trade_datetime
+        description: "Bar timestamp"
+        tests:
+          - not_null
+      - name: close_price
+        description: "Closing price (rounded to 4 decimals)"
+        tests:
+          - not_null
+      - name: volume
+        description: "Volume traded (cast to BIGINT)"
+      - name: bar_range
+        description: "High minus Low for the bar"
+      - name: bar_return_pct
+        description: "Percentage return within the bar: (close-open)/open * 100"

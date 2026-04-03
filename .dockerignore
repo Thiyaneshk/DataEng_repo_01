@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+.uv/
+.git
+.gitignore
+.vscode/
+.idea/
+.DS_Store
+data/
+*.log
+.streamlit/secrets.toml

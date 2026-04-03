@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# uv
+.uv/
+
+# Streamlit secrets (do NOT commit real secrets)
+.streamlit/secrets.toml
+
+# Git
+.git/
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Data artifacts – keep the directory but ignore DB files
+data/*.duckdb
+data/*.db
+data/*.sqlite
+*.log
+!data/.gitkeep
+
+# dbt build artifacts
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
