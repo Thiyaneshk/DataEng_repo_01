@@ -4,6 +4,9 @@ default:
     dev:
       type: duckdb
       path: ../data/app.duckdb
+    duckdb:
+      type: duckdb
+      path: ../data/app.duckdb
 
 postgres:
   target: dev

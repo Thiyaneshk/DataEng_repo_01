@@ -51,9 +51,11 @@ with DAG(
         bash_command="cd /workspace/dbt && dbt run --profiles-dir /workspace/dbt --target duckdb",
     )
 
-    dbt_run_postgres_op = BashOperator(
-        task_id="run_dbt_postgres",
-        bash_command="cd /workspace/dbt && dbt run --profiles-dir /workspace/dbt --target postgres",
-    )
+    # Optional: Run dbt for Postgres (commented out since data is in DuckDB)
+    # dbt_run_postgres_op = BashOperator(
+    #     task_id="run_dbt_postgres",
+    #     bash_command="cd /workspace/dbt && dbt run --profiles-dir /workspace/dbt --profile postgres --target dev",
+    # )
 
-    load_prices_op >> dbt_run_duckdb_op >> dbt_run_postgres_op
+    # load_prices_op >> dbt_run_duckdb_op >> dbt_run_postgres_op
+    load_prices_op >> dbt_run_duckdb_op

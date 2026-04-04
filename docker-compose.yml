@@ -61,7 +61,7 @@ services:
       - "8080:8080"
     command: >
       bash -c "
-      pip install -q duckdb yfinance dbt-duckdb sqlalchemy psycopg2-binary &&
+      pip install -q duckdb yfinance dbt-duckdb dbt-postgres sqlalchemy psycopg2-binary &&
       airflow db init &&
       airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin || true &&
       airflow webserver"
@@ -84,7 +84,7 @@ services:
     command: >
       bash -c "
       sleep 20 && \
-      pip install -q duckdb yfinance dbt-duckdb sqlalchemy psycopg2-binary &&
+      pip install -q duckdb yfinance dbt-duckdb dbt-postgres sqlalchemy psycopg2-binary &&
       airflow scheduler"
 
 
