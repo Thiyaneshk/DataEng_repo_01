@@ -16,8 +16,7 @@ def test_db_init():
     cfg = get_config()
     with duckdb.connect(str(cfg.duckdb_path)) as conn:
         tables = [t[0] for t in conn.execute("SHOW TABLES").fetchall()]
-        assert "watchlist" in tables
-        assert "holdings" in tables
+        assert "user_stocks" in tables
 
 
 def test_watchlist_and_holdings_crud():

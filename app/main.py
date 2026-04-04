@@ -67,7 +67,7 @@ def discover_pages(pages_dir: Path) -> Dict[str, List[st.Page]]:
 
         groups[group].append((order, page_name, file))
 
-    allowed_groups = ["Home", "Stock", "Portfolio", "Testing"]
+    allowed_groups = ["Home", "Stock", "Portfolio", "Admin", "Testing"]
     filtered_groups = {
         group: groups[group] for group in allowed_groups if group in groups
     }
@@ -108,8 +108,7 @@ def main() -> None:
         name = user.get("name") or user.get("email") or "User"
         st.sidebar.markdown(f"### Welcome, {name}!")
         if st.sidebar.button("Log out"):
-            # TODO: wire this to your real auth logout logic later
-            st.warning("Logout not implemented yet.")
+            auth.logout()
         st.sidebar.divider()
 
     # --- Navigation setup ---

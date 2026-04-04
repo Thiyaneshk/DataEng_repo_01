@@ -5,6 +5,70 @@
 
 ---
 
+## Phase 0/3: Unified Holdings & Watchlist Management ✅
+**Date:** 2026-04-04
+**Status:** Complete
+
+### What Was Done
+1. **Unified Database Schema** in `app/db/utils.py`:
+   - Replaced separate `watchlist` and `holdings` tables with single `user_stocks` table containing: `symbol` (PK), `quantity`, `avg_cost`, `tags`, `note`, `updated_at`
+   - Added automatic migration logic to preserve existing watchlist/holdings data from legacy tables
+   - Maintained backward compatibility with legacy functions (`get_watchlist()`, `add_to_watchlist()`, etc.)
+   - Added new functions: `get_all_stocks()`, `add_or_update_stock()`, `remove_stock()`
+
+2. **Redesigned Admin UI** in `app/views/05_Admin_Watchlist.py`:
+   - Combined watchlist and holdings management into single "Portfolio Manager" interface
+   - Added quantity editing capability (quantity = 0 → watchlist, quantity > 0 → holding)
+   - Implemented comprehensive CRUD operations with forms for adding/editing stocks
+   - Added quick edit functionality for existing stocks
+   - Included all metadata fields: symbol, quantity, avg_cost, tags, notes
+
+3. **Updated Tests** in `tests/test_integration.py`:
+   - Modified `test_db_init()` to check for new `user_stocks` table instead of legacy tables
+   - Verified backward compatibility of CRUD operations
+
+### Key Technical Decisions
+- **Unified Schema:** Single table approach simplifies data management while preserving all functionality
+- **Automatic Classification:** Stocks are dynamically classified as holdings/watchlist based on quantity
+- **Migration Safety:** Legacy data is automatically migrated on first run, with error handling for missing tables
+
+### Verification Results
+- **Database Migration:** ✅ Legacy data preserved, new table created correctly
+- **Backward Compatibility:** ✅ Legacy functions work with new schema
+- **CRUD Operations:** ✅ Add/update/remove stocks functions correctly
+- **UI Functionality:** ✅ Single interface handles both watchlist and holdings
+- **Tests:** ✅ Updated tests pass, confirming schema and function changes
+
+### User Experience Improvements
+- **Seamless Management:** Users can now add stocks to watchlist and convert to holdings by simply editing quantity
+- **Complete Metadata:** All stock information (tags, notes, costs) managed in one place
+- **Real-time Updates:** Changes reflect immediately in the UI and database
+
+---
+
+## Auth & Navigation Fixes ✅
+**Date:** 2026-04-04
+**Status:** Complete
+
+### Issues Fixed
+1. **Logout Functionality**: Wired the logout button in `app/main.py` to actually call `auth.logout()` instead of showing a warning
+2. **Admin Page Discovery**: Added "Admin" to `allowed_groups` in `app/main.py` so admin pages (05_Admin_Watchlist.py, 99_Admin_Platform_Setup.py) appear in navigation
+3. **Auth Rerun Consistency**: Updated all `st.experimental_rerun()` calls to `st.rerun()` for compatibility with current Streamlit version
+
+### Technical Details
+- **Navigation Fix**: The page discovery logic was filtering out "Admin" group pages, preventing access to portfolio management features
+- **Auth Flow**: Dev login and logout now properly refresh the app state using experimental_rerun
+- **Session Management**: Logout correctly clears user session state and redirects to login
+
+### Verification Results
+- **Navigation**: Admin pages now appear in the sidebar navigation menu
+- **Logout**: Clicking "Log out" properly clears session and returns to login screen
+- **Login Flow**: Dev login successfully authenticates and grants access to all pages
+- **Page Access**: Admin functionality is now accessible after authentication
+- **Rerun Fix**: Corrected `st.experimental_rerun()` to `st.rerun()` for Streamlit compatibility
+
+---
+
 ## Step 2.5: Unblocking UI with Dev Auth ✅
 **Date:** 2026-03-06
 **Status:** Complete
