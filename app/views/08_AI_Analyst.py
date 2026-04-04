@@ -37,7 +37,7 @@ class OllamaClient:
             if context:
                 payload["context"] = context
 
-            response = requests.post(f"{self.base_url}/api/generate", json=payload, timeout=30)
+            response = requests.post(f"{self.base_url}/api/generate", json=payload, timeout=120)
             response.raise_for_status()
             return response.json()
         except Exception as e:

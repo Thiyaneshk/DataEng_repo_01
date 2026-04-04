@@ -124,12 +124,39 @@
 - **Ollama Setup**: Local LLM service runs in Docker with model persistence
 - **Navigation**: New Analysis and AI pages accessible in sidebar
 
+### Known Issues
+- **AI Analyst Timeout**: Ollama requests timeout after 30 seconds for complex queries. Increased timeout to 120 seconds as temporary fix. Consider model optimization or streaming responses for better UX.
+
 ### User Experience Improvements
 - **Advanced Analytics**: Professional-grade technical analysis with multiple indicators
 - **Interactive Charts**: Zoom, pan, and overlay controls for detailed analysis
 - **AI Insights**: Natural language queries answered with data-backed analysis
 - **Local AI**: Privacy-preserving AI without external API dependencies
 - **Automated Pipeline**: End-to-end data processing from raw prices to AI insights
+
+---
+
+## AI Analyst Timeout Fix ✅
+**Date:** 2026-04-04
+**Status:** Complete
+
+### Issue Identified
+- Ollama API requests timing out after 30 seconds for complex stock analysis queries
+- Error: `HTTPConnectionPool(host='ollama', port=11434): Read timed out. (read timeout=30)`
+
+### Solution Implemented
+- Increased request timeout from 30 to 120 seconds in `OllamaClient.generate()`
+- Allows sufficient time for local LLM inference on complex financial analysis prompts
+
+### Technical Details
+- Local LLMs can be slower than cloud APIs, especially for detailed analysis
+- 120-second timeout provides buffer for model loading and inference
+- Future improvements: Implement streaming responses, model quantization, or smaller models
+
+### Verification Results
+- Timeout errors eliminated for standard queries
+- AI analyst can now process multi-stock analysis requests
+- Response quality maintained with increased processing time
 
 ---
 
