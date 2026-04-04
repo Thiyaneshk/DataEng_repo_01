@@ -16,12 +16,7 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-      - ./scripts/init_ollama.sh:/init_ollama.sh
-    command: >
-      bash -c "
-      /init_ollama.sh &
-      serve
-      "
+    command: serve
 
   streamlit:
     build: .

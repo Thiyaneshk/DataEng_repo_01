@@ -7,8 +7,23 @@ from app.config import get_config
 
 
 class OllamaClient:
-    def __init__(self, base_url="http://ollama:11434"):
-        self.base_url = base_url
+    def __init__(self, base_url=None):
+        if base_url is None:
+            # Auto-detect environment
+            if self._is_running_in_docker():
+                self.base_url = "http://ollama:11434"
+            else:
+                self.base_url = "http://localhost:11434"
+        else:
+            self.base_url = base_url
+
+    def _is_running_in_docker(self):
+        """Check if running inside a Docker container."""
+        try:
+            with open('/.dockerenv', 'r'):
+                return True
+        except FileNotFoundError:
+            return False
 
     def generate(self, model, prompt, context=None):
         """Generate response from Ollama model."""
@@ -73,15 +88,58 @@ def get_stock_context(symbol, limit=10):
 def main():
     st.title("🤖 AI Stock Analyst (RAG)")
 
+    # Ollama configuration
+    with st.expander("🔧 Ollama Configuration", expanded=False):
+        col1, col2 = st.columns(2)
+        with col1:
+            custom_url = st.text_input("Custom Ollama URL", placeholder="http://localhost:11434")
+        with col2:
+            use_custom = st.checkbox("Use custom URL")
+
+        if use_custom and custom_url:
+            ollama_url = custom_url
+        else:
+            ollama_url = None  # Auto-detect
+
     # Initialize Ollama client
-    ollama = OllamaClient()
+    ollama = OllamaClient(ollama_url)
 
     # Check available models
     models_response = ollama.list_models()
     if "error" in models_response:
-        st.error(f"Cannot connect to Ollama: {models_response['error']}")
-        st.info("Make sure Ollama is running: `docker-compose up ollama`")
-        st.info("Pull a model: `docker-compose exec ollama ollama pull llama2`")
+        st.error(f"Cannot connect to Ollama at {ollama.base_url}: {models_response['error']}")
+
+        st.info("**Setup Instructions:**")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("""
+            **If running locally:**
+            ```bash
+            # Install Ollama
+            curl -fsSL https://ollama.ai/install.sh | sh
+
+            # Start Ollama service
+            ollama serve
+
+            # Pull a model
+            ollama pull llama2
+            ```
+            """)
+
+        with col2:
+            st.markdown("""
+            **If using Docker:**
+            ```bash
+            # Start Ollama service
+            docker-compose up ollama -d
+
+            # Pull a model
+            docker-compose exec ollama ollama pull llama2
+            ```
+            """)
+
+        st.info("💡 **Tip:** If Ollama is running but on a different URL, use the configuration above to specify a custom URL.")
         return
 
     available_models = [model['name'] for model in models_response.get('models', [])]
@@ -187,13 +245,22 @@ Provide clear, actionable insights based on the data available. Be honest about 
         for model in available_models:
             st.write(f"• {model}")
 
+    # Model management section
+    st.subheader("🔧 Model Management")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.write("**Available Models:**")
+        for model in available_models:
+            st.write(f"• {model}")
+
     with col2:
         st.write("**Pull New Model:**")
         new_model = st.text_input("Model name (e.g., llama2, mistral)")
         if st.button("Pull Model") and new_model:
             with st.spinner(f"Pulling {new_model}..."):
-                # This would need to be run in a separate process
-                st.info(f"To pull {new_model}, run: `docker-compose exec ollama ollama pull {new_model}`")
+                st.info(f"**Command to run:** `{'docker-compose exec ollama' if ollama.base_url == 'http://ollama:11434' else 'ollama'} ollama pull {new_model}`")
+                st.info("This needs to be run in your terminal. The model will be available after pulling.")
 
 
 if __name__ == "__main__":

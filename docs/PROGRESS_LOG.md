@@ -66,6 +66,9 @@
 - **Login Flow**: Dev login successfully authenticates and grants access to all pages
 - **Page Access**: Admin functionality is now accessible after authentication
 - **Rerun Fix**: Corrected `st.experimental_rerun()` to `st.rerun()` for Streamlit compatibility
+- **Ollama Integration**: Local LLM service running in Docker with model persistence
+- **RAG System**: AI analyst provides context-aware analysis using stock data
+- **Auto-detection**: Ollama client automatically detects Docker vs local environment
 
 ---
 
