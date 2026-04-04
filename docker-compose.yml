@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   postgres:
     image: postgres:15
@@ -29,6 +27,8 @@ services:
       - ./data:/app/data
       - ./app:/app/app
       - ./config:/app/config
+      - ./dbt:/app/dbt
+      - ./scripts:/app/scripts
     ports:
       - "8501:8501"
     command: ["streamlit", "run", "app/main.py", "--server.enableCORS=false"]
@@ -43,22 +43,41 @@ services:
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       AIRFLOW__WEBSERVER__ENABLE_PROXY_FIX: "true"
       AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.basic_auth
-      PYTHONPATH: /app
+      PYTHONPATH: /workspace
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/logs:/opt/airflow/logs
       - ./airflow/plugins:/opt/airflow/plugins
-      - ./app:/app
-      - ./data:/app/data
-      - ./config:/app/config
-      - ./dbt:/app/dbt
+      - .:/workspace
     ports:
       - "8080:8080"
     command: >
-      bash -c "pip install -q duckdb yfinance dbt-duckdb sqlalchemy psycopg2-binary &&
+      bash -c "
+      pip install -q duckdb yfinance dbt-duckdb sqlalchemy psycopg2-binary &&
       airflow db init &&
       airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin || true &&
       airflow webserver"
+
+  airflow-scheduler:
+    image: apache/airflow:2.10.2
+    depends_on:
+      - postgres
+      - airflow
+    environment:
+      AIRFLOW__CORE__EXECUTOR: SequentialExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:postgres@postgres:5432/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      PYTHONPATH: /workspace
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+      - .:/workspace
+    command: >
+      bash -c "
+      sleep 20 && \
+      pip install -q duckdb yfinance dbt-duckdb sqlalchemy psycopg2-binary &&
+      airflow scheduler"
 
 
 volumes:

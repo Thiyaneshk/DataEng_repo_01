@@ -14,7 +14,7 @@ COPY pyproject.toml uv.lock ./
 
 #  Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir streamlit duckdb yfinance dbt-duckdb plotly
+    pip install --no-cache-dir streamlit duckdb yfinance dbt-duckdb plotly sqlalchemy psycopg2-binary
 
 # Copy the rest of the project
 COPY . .

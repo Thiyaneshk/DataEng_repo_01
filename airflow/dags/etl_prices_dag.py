@@ -12,10 +12,9 @@ def load_prices_task():
     """Load latest prices from yfinance into DuckDB"""
     import sys
     import os
-    # When running in Airflow, /app is the root of project
-    # So add /app to path to make 'app' module importable
-    # /app/app is the actual app package
-    sys.path.insert(0, os.path.dirname("/app"))  # This makes it /
+    # When running in Airflow, /workspace is the root of project
+    # So add /workspace to path to make 'app' module importable
+    sys.path.insert(0, "/workspace")
     
     try:
         from app.core.etl.prices import load_prices_5m
@@ -49,7 +48,7 @@ with DAG(
 
     dbt_run_op = BashOperator(
         task_id="run_dbt_postgres",
-        bash_command="cd /app/dbt && dbt run --profiles-dir /app/dbt --target postgres",
+        bash_command="cd /workspace/dbt && dbt run --profiles-dir /workspace/dbt --target postgres",
     )
 
     load_prices_op >> dbt_run_op
