@@ -1,22 +1,30 @@
 from datetime import datetime, timedelta
+import subprocess
+import sys
+import os
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-
-from app.core.etl.prices import load_prices
-
-
-def run_dbt_postgres():
-    import subprocess
-    subprocess.run(
-        ["dbt", "run", "--profiles-dir", "/app/dbt", "--target", "postgres"],
-        check=True,
-        cwd="/app/dbt",
-    )
+from airflow.operators.bash import BashOperator
 
 
 def load_prices_task():
-    load_prices()
+    """Load latest prices from yfinance into DuckDB"""
+    import sys
+    import os
+    # When running in Airflow, /app is the root of project
+    # So add /app to path to make 'app' module importable
+    # /app/app is the actual app package
+    sys.path.insert(0, os.path.dirname("/app"))  # This makes it /
+    
+    try:
+        from app.core.etl.prices import load_prices_5m
+        count = load_prices_5m(period="5d")
+        print(f"✅ Loaded {count} price records into DuckDB")
+        return count
+    except Exception as e:
+        print(f"❌ Price loading failed: {str(e)}")
+        raise
 
 
 with DAG(
@@ -39,9 +47,9 @@ with DAG(
         python_callable=load_prices_task,
     )
 
-    dbt_run_op = PythonOperator(
+    dbt_run_op = BashOperator(
         task_id="run_dbt_postgres",
-        python_callable=run_dbt_postgres,
+        bash_command="cd /app/dbt && dbt run --profiles-dir /app/dbt --target postgres",
     )
 
     load_prices_op >> dbt_run_op
