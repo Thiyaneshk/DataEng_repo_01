@@ -10,6 +10,19 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+      - ./scripts/init_ollama.sh:/init_ollama.sh
+    command: >
+      bash -c "
+      /init_ollama.sh &
+      serve
+      "
+
   streamlit:
     build: .
     image: stock-ml:latest
@@ -82,3 +95,4 @@ services:
 
 volumes:
   postgres_data:
+  ollama_data:

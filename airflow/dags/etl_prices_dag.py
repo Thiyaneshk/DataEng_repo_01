@@ -46,9 +46,14 @@ with DAG(
         python_callable=load_prices_task,
     )
 
-    dbt_run_op = BashOperator(
+    dbt_run_duckdb_op = BashOperator(
+        task_id="run_dbt_duckdb",
+        bash_command="cd /workspace/dbt && dbt run --profiles-dir /workspace/dbt --target duckdb",
+    )
+
+    dbt_run_postgres_op = BashOperator(
         task_id="run_dbt_postgres",
         bash_command="cd /workspace/dbt && dbt run --profiles-dir /workspace/dbt --target postgres",
     )
 
-    load_prices_op >> dbt_run_op
+    load_prices_op >> dbt_run_duckdb_op >> dbt_run_postgres_op

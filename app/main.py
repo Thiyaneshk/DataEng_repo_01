@@ -67,7 +67,7 @@ def discover_pages(pages_dir: Path) -> Dict[str, List[st.Page]]:
 
         groups[group].append((order, page_name, file))
 
-    allowed_groups = ["Home", "Stock", "Portfolio", "Admin", "Testing"]
+    allowed_groups = ["Home", "Stock", "Portfolio", "Admin", "Analysis", "AI", "Testing"]
     filtered_groups = {
         group: groups[group] for group in allowed_groups if group in groups
     }

@@ -69,6 +69,67 @@
 
 ---
 
+## Phase 4: Technical Analysis & AI RAG System ✅
+**Date:** 2026-04-04
+**Status:** Complete
+
+### What Was Done
+1. **Enhanced Technical Indicators** in `dbt/models/marts/fct_indicators_1d.sql`:
+   - Added EMA 200 (long-term trend)
+   - Implemented RSI 14 (momentum oscillator)
+   - Added MACD with signal line and histogram (trend following)
+   - Implemented Bollinger Bands with position indicator (volatility)
+   - Added Stochastic Oscillator K%D (momentum)
+   - All indicators calculated using proper window functions
+
+2. **Created Technical Analysis Dashboard** (`app/views/07_Technical_Analysis.py`):
+   - Interactive candlestick charts with overlaid EMAs and Bollinger Bands
+   - Multi-panel visualization: Price/Volume/RSI/MACD
+   - Key metrics display (latest close, returns, RSI, BB position)
+   - Technical signals analysis and alerts
+   - Date range filtering and symbol selection
+
+3. **Updated Airflow DAG** (`airflow/dags/etl_prices_dag.py`):
+   - Added dbt run for DuckDB target (indicators calculation)
+   - Sequential execution: Load prices → Run dbt DuckDB → Run dbt Postgres
+   - Maintains both local analytics and warehouse targets
+
+4. **Implemented RAG AI Analyst** (`app/views/08_AI_Analyst.py`):
+   - Integrated Ollama for local LLM inference
+   - RAG system with stock data context retrieval
+   - Chat interface for AI-powered market analysis
+   - Model selection and management interface
+   - Context-aware responses using technical indicators
+
+5. **Added Ollama Docker Service**:
+   - Ollama container for local LLM hosting
+   - Automatic model initialization script
+   - Volume persistence for downloaded models
+   - Network integration with Streamlit app
+
+### Key Technical Decisions
+- **Comprehensive Indicator Suite**: Selected most widely used technical indicators for complete analysis
+- **Multi-Panel Visualization**: Separated concerns (price, volume, oscillators, momentum) for clarity
+- **Local LLM Priority**: Ollama chosen for privacy, cost-effectiveness, and offline capability
+- **RAG Architecture**: Context retrieval from dbt models ensures data-driven AI responses
+
+### Verification Results
+- **Technical Indicators**: All indicators calculate correctly with proper window functions
+- **Visualization**: Candlestick charts render with all overlays and multi-panel layout
+- **Airflow Integration**: DAG successfully runs ETL → dbt DuckDB → dbt Postgres sequence
+- **AI Analyst**: RAG system provides context-aware analysis using stock data
+- **Ollama Setup**: Local LLM service runs in Docker with model persistence
+- **Navigation**: New Analysis and AI pages accessible in sidebar
+
+### User Experience Improvements
+- **Advanced Analytics**: Professional-grade technical analysis with multiple indicators
+- **Interactive Charts**: Zoom, pan, and overlay controls for detailed analysis
+- **AI Insights**: Natural language queries answered with data-backed analysis
+- **Local AI**: Privacy-preserving AI without external API dependencies
+- **Automated Pipeline**: End-to-end data processing from raw prices to AI insights
+
+---
+
 ## Step 2.5: Unblocking UI with Dev Auth ✅
 **Date:** 2026-03-06
 **Status:** Complete
