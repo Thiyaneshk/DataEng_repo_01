@@ -1,27 +1,51 @@
 import streamlit as st
-from app.db.connection import get_duckdb_connection
+from sqlalchemy import text
+
+from app.config import get_config
+from app.db.connection import get_connection
 
 
 def main():
+    cfg = get_config()
+    backend = "Postgres" if cfg.postgres_url else "DuckDB"
+
     st.title("🗄️ Database Explorer")
     st.markdown(
-        "Use this page to inspect DuckDB tables, preview data, and run ad hoc SQL queries."
+        f"Use this page to inspect the active database backend: **{backend}**."
     )
 
-    with get_duckdb_connection() as conn:
-        tables = [row[0] for row in conn.execute("SHOW TABLES").fetchall()]
+    with get_connection() as conn:
+        if cfg.postgres_url:
+            tables = [row[0] for row in conn.execute(text("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public' ORDER BY tablename")).all()]
+        else:
+            tables = [row[0] for row in conn.execute("SHOW TABLES").fetchall()]
 
-    st.sidebar.header("DuckDB Tables")
+    st.sidebar.header(f"{backend} Tables")
     if tables:
         st.sidebar.write("\n".join(tables))
     else:
-        st.sidebar.info("No DuckDB tables found yet.")
+        st.sidebar.info("No tables found yet.")
 
     selected_table = st.selectbox("Select table to preview", [""] + tables)
     if selected_table:
-        with get_duckdb_connection() as conn:
-            sample = conn.execute(f"SELECT * FROM {selected_table} LIMIT 100").df()
-            schema = conn.execute(f"DESCRIBE {selected_table}").df()
+        with get_connection() as conn:
+            if cfg.postgres_url:
+                sample_result = conn.execute(text(f"SELECT * FROM {selected_table} LIMIT 100"))
+                schema_result = conn.execute(
+                    text(
+                        "SELECT column_name, data_type, is_nullable "
+                        "FROM information_schema.columns "
+                        "WHERE table_name = :table_name "
+                        "ORDER BY ordinal_position"
+                    ),
+                    {"table_name": selected_table},
+                )
+                sample = sample_result.mappings().all()
+                schema = schema_result.mappings().all()
+            else:
+                sample = conn.execute(f"SELECT * FROM {selected_table} LIMIT 100").df()
+                schema = conn.execute(f"DESCRIBE {selected_table}").df()
+
         st.subheader(f"Schema for {selected_table}")
         st.dataframe(schema, use_container_width=True)
         st.subheader(f"Sample rows from {selected_table}")
@@ -36,11 +60,16 @@ def main():
             st.error("Please enter a SQL query.")
         else:
             try:
-                with get_duckdb_connection() as conn:
-                    result = conn.execute(sql).df()
-                st.dataframe(result, use_container_width=True)
+                with get_connection() as conn:
+                    if cfg.postgres_url:
+                        result = conn.execute(text(sql))
+                        st.dataframe(result.mappings().all(), use_container_width=True)
+                    else:
+                        result = conn.execute(sql).df()
+                        st.dataframe(result, use_container_width=True)
             except Exception as exc:
                 st.error(str(exc))
+
 
 if __name__ == "__main__":
     main()

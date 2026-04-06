@@ -1,7 +1,13 @@
 import streamlit as st
-from pathlib import Path
+
+from app.config import get_config
+from app.db.connection import get_connection
+
 
 def main():
+    cfg = get_config()
+    backend = "Postgres" if cfg.postgres_url else "DuckDB"
+
     st.title("⚙️ Admin: Platform Setup & Ops")
     st.write("This page provides instructions and tools for managing your Mac mini M4 platform.")
 
@@ -44,12 +50,21 @@ def main():
 
     with tab3:
         st.header("DB Operations")
-        if st.button("🔍 Check DuckDB Connection"):
-            from app.db.connection import get_duckdb_connection
+        st.write(f"**Active backend:** {backend}")
+        if cfg.postgres_url:
+            st.write(f"**Postgres URL:** `{cfg.postgres_url}`")
+            st.write("You can connect from your host using `localhost:5432`.")
+        else:
+            st.write("This app is currently using DuckDB. Set `POSTGRES_URL` to switch to Postgres.")
+
+        if st.button("🔍 Check DB Connection"):
             try:
-                with get_duckdb_connection() as conn:
-                    version = conn.execute("SELECT version()").fetchone()[0]
-                    st.success(f"Connected! DuckDB Version: {version}")
+                with get_connection() as conn:
+                    if cfg.postgres_url:
+                        version = conn.exec_driver_sql("SELECT version()").fetchone()[0]
+                    else:
+                        version = conn.execute("SELECT version()").fetchone()[0]
+                    st.success(f"Connected! {backend} Version: {version}")
             except Exception as e:
                 st.error(f"Connection failed: {e}")
 

@@ -154,6 +154,13 @@ docker-compose ps
 # Postgres -> localhost:5432
 ```
 
+### Postgres DB client access
+
+- Postgres is exposed to the host on `localhost:5432`
+- Connect with any client: DBeaver, TablePlus, pgAdmin, DataGrip, `psql`, etc.
+- Default connection string:
+  `postgresql://postgres:postgres@localhost:5432/airflow`
+
 ### Airflow DAG
 
 - `airflow/dags/etl_prices_dag.py` now coordinates:

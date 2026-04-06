@@ -1,23 +1,17 @@
 default:
-  target: dev
+  target: postgres
   outputs:
-    dev:
-      type: duckdb
-      path: ../data/app.duckdb
-    duckdb:
-      type: duckdb
-      path: ../data/app.duckdb
-
-postgres:
-  target: dev
-  outputs:
-    dev:
+    postgres:
       type: postgres
       host: postgres
       user: postgres
       password: postgres
-      dbname: airflow
+      dbname: stock_ml
       port: 5432
       schema: public
       keepalives_idle: 0
+      threads: 4
+    duckdb:
+      type: duckdb
+      path: ../data/app.duckdb
 

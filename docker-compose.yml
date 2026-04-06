@@ -28,7 +28,7 @@ services:
     environment:
       - APP_NAME=${APP_NAME:-Equity Data Platform}
       - DUCKDB_PATH=${DUCKDB_PATH:-data/app.duckdb}
-      - POSTGRES_URL=${POSTGRES_URL:-postgresql://postgres:postgres@postgres:5432/airflow}
+      - POSTGRES_URL=${POSTGRES_URL:-postgresql://postgres:postgres@postgres:5432/stock_ml}
       - STREAMLIT_SERVER_PORT=8501
       - STREAMLIT_SERVER_ADDRESS=0.0.0.0
     volumes:
