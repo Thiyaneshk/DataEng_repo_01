@@ -5,6 +5,14 @@
 -- Created: 2026-04-06
 -- ============================================================================
 
+-- MIGRATION HISTORY:
+-- 2026-04-06: Phase 4 - Added core tables (user_stocks, prices) + dbt marts
+-- 2026-04-06: Phase 5 - Added indices management (indices, index_constituents, health_checks)
+--
+-- To apply Phase 5 migrations, run:
+--   psql -d stock_ml -f db/indices_schema.sql
+--   psql -d stock_ml -f db/seed_indices.sql
+
 -- ============================================================================
 -- Layer 1: Application Tables (User Data)
 -- ============================================================================

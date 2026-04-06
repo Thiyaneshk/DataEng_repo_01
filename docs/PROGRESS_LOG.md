@@ -261,3 +261,96 @@ yfinance v0.2.66 **always** returns `MultiIndex` columns `(Ticker, Price)` even 
 3. `AppConfig` reads env vars at class-definition time (stale values possible)
 4. Relative DuckDB path is CWD-dependent
 5. No CI/CD pipeline
+
+---
+
+## Phase 5: Admin Dashboard (Separate Streamlit App) ✅
+**Date:** 2026-04-06
+**Status:** Complete
+
+### What Was Done
+1. **Created Admin Application Architecture** (`admin/` directory):
+   - **`admin/main.py`** — Independent Streamlit app with password-gated authentication (admin/admin for MVP)
+   - **`admin/config.py`** — Centralized configuration module with security settings, database URLs, and helper functions
+   - **`admin/__init__.py`** — Package initialization
+
+2. **Implemented Multi-Page Admin System** (`admin/pages/` directory):
+   - **`admin/pages/dashboard.py`** — System overview with health metrics, recent activities, data freshness indicators
+   - **`admin/pages/ticker_manager.py`** — Add/edit/remove stock symbols with exchange validation
+   - **`admin/pages/holdings_manager.py`** — Manage portfolio holdings with cost basis tracking and tag support
+   - **`admin/pages/index_manager.py`** — Configure and manage index constituents for multi-index support
+   - **`admin/pages/pipeline_health.py`** — Monitor ETL pipeline health, data freshness, and API health metrics
+   - **`admin/pages/__init__.py`** — Package initialization
+
+3. **Docker Integration**:
+   - **Added `admin` service** to `docker-compose.yml`:
+     - Builds from same Dockerfile as main app
+     - Runs on port 8502 (separate from main Streamlit on 8501)
+     - Shares PostgreSQL database with main app
+     - Mounts admin volume plus shared volumes (data, config, dbt, scripts)
+     - Uses same environment variables as main app
+
+4. **Admin Page Navigation**:
+   - Implemented auto-discovery pattern using Streamlit's multi-page app structure
+   - Admin pages load from `admin/pages/` directory with predictable naming (`*.py` files)
+   - Session state manages authentication across page navigation
+   - Sidebar provides quick access to all admin functions
+
+### Key Technical Decisions
+- **Separate Streamlit App**: Isolates admin functionality from user-facing app, improving security and maintainability
+- **Port 8502**: Distinct port allows both apps to run simultaneously in Docker
+- **Shared Database**: PostgreSQL connection enables real-time sync between apps
+- **MVP Authentication**: Simple hardcoded password for quick testing; ready for upgrade to environment-variable-based or secure DB storage
+- **Multi-page Architecture**: Streamlit's native multi-page support provides clean route management without custom routing
+
+### Configuration & Security
+- **Session Timeout**: 3600 seconds (1 hour) via `AdminConfig`
+- **Password Management**: Reads from environment variable `ADMIN_PASSWORD` with fallback to "admin"
+- **Database Access**: Inherits connection settings from main app config
+- **Environment Isolation**: Separate env configuration via `.env` file, avoiding hardcoded values
+
+### Database Schema (Reused from Main App)
+- **`user_stocks`** — Unified holdings/watchlist table (quantity = 0 → watchlist)
+- **`raw_prices`** — Price data from yfinance ETL
+- **`dbt views`** — Staging and marts (indicators, signals)
+
+### Verification Results
+- ✅ **File Structure**: Admin package properly created with correct module hierarchy
+- ✅ **Page Discovery**: All admin pages in `admin/pages/` directory are auto-discovered
+- ✅ **Authentication**: Password gate checks session state to prevent re-login on page navigation
+- ✅ **Database Connection**: Inherits PostgreSQL and DuckDB configs from shared environment
+- ✅ **Docker Build**: Admin service builds successfully alongside main app
+- ✅ **Port Configuration**: Admin runs on 8502, main app on 8501 without conflicts
+- ✅ **Volume Mounts**: All required directories mounted for data access and code changes
+
+### Deployment Checklist
+- [x] Admin module structure created
+- [x] All pages implemented and tested
+- [x] Docker configuration added
+- [x] Environment variables documented
+- [x] Database schema verified
+- [x] Authentication flow validated
+- [x] Multi-page routing working
+
+### User Experience Improvements
+- **Security**: Password-protected admin area separate from main application
+- **Workflow**: Administrators can manage tickers, holdings, indices without affecting user data
+- **Monitoring**: Pipeline health dashboard provides real-time system status
+- **Scalability**: Separate app allows independent scaling of admin vs user traffic
+
+### Known Limitations (MVP)
+- **Hardcoded Password**: Currently uses "admin/admin" for testing. Production should use secure secret management
+- **Session Isolation**: Admin sessions not shared with main app (independent authentication)
+- **Rate Limiting**: No request throttling or DDoS protection implemented
+- **Audit Logging**: Admin actions not currently logged to audit table
+
+### Future Enhancements
+1. **Multi-user Admin Support**: Role-based access control (superadmin, analyst, operator)
+2. **Audit Trail**: Log all admin actions with timestamps and user IDs
+3. **Advanced Scheduling**: UI for managing ETL schedule, notifications, backfill jobs
+4. **Backup Management**: Database backup and restore interfaces
+5. **Performance Analytics**: Query profiling, data pipeline metrics dashboard
+6. **Integration Hooks**: Webhooks for external event triggering (price alerts, news)
+7. **API Deprecation**: Transition admin features to FastAPI for programmatic access
+
+---

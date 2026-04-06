@@ -8,7 +8,7 @@ Learning goals:
 import duckdb
 import pytest
 
-from app.core.etl.prices import fetch_prices, load_prices
+from app.core.etl.prices import fetch_prices_5m, load_prices_5m
 
 
 # ---------------------------------------------------------------------------
@@ -21,18 +21,18 @@ class TestFetchPrices:
 
     def test_returns_dataframe_with_expected_columns(self) -> None:
         """Fetch a single symbol for 1 day and check the shape."""
-        df = fetch_prices(symbols=["AAPL"], period="1d", interval="5m")
+        df = fetch_prices_5m(symbols=["AAPL"], period="1d")
         expected_cols = {"symbol", "datetime", "open", "high", "low", "close", "volume"}
         assert set(df.columns) == expected_cols, f"Columns mismatch: {list(df.columns)}"
 
     def test_returns_rows_for_valid_symbol(self) -> None:
         """We should get at least 1 row for a major US stock on a trading day."""
-        df = fetch_prices(symbols=["AAPL"], period="5d", interval="1d")
+        df = fetch_prices_5m(symbols=["AAPL"], period="5d")
         assert len(df) > 0, "Expected at least 1 row from AAPL daily data"
 
     def test_handles_invalid_symbol_gracefully(self) -> None:
         """An invalid ticker should not crash; it should return an empty (or partial) DF."""
-        df = fetch_prices(symbols=["ZZZZZZ_INVALID"], period="1d", interval="1d")
+        df = fetch_prices_5m(symbols=["ZZZZZZ_INVALID"], period="1d")
         # We just verify it doesn't raise; the DF may be empty
         assert df is not None
 
@@ -54,30 +54,30 @@ class TestLoadPrices:
 
     def test_creates_raw_prices_table(self, mem_conn) -> None:
         """After load_prices(), the raw_prices table must exist."""
-        load_prices(symbols=["AAPL"], period="1d", interval="1d", conn=mem_conn)
+        load_prices_5m(symbols=["AAPL"], period="1d", conn=mem_conn)
         tables = [
             row[0]
             for row in mem_conn.execute(
                 "SELECT table_name FROM information_schema.tables"
             ).fetchall()
         ]
-        assert "raw_prices" in tables
+        assert "raw_prices_5m" in tables
 
     def test_inserts_rows(self, mem_conn) -> None:
         """After loading, the table should have > 0 rows."""
-        row_count = load_prices(
-            symbols=["AAPL"], period="5d", interval="1d", conn=mem_conn
+        row_count = load_prices_5m(
+            symbols=["AAPL"], period="5d", conn=mem_conn
         )
         assert row_count > 0
 
     def test_table_schema_matches(self, mem_conn) -> None:
         """Verify the column names and types in raw_prices."""
-        load_prices(symbols=["AAPL"], period="1d", interval="1d", conn=mem_conn)
+        load_prices_5m(symbols=["AAPL"], period="1d", conn=mem_conn)
         cols = mem_conn.execute(
             """
             SELECT column_name, data_type
             FROM information_schema.columns
-            WHERE table_name = 'raw_prices'
+            WHERE table_name = 'raw_prices_5m'
             ORDER BY ordinal_position
             """
         ).fetchall()

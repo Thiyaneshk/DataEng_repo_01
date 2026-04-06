@@ -1,6 +1,7 @@
 version: 2
 sources:
   - name: raw
-    schema: public
+    schema: main
     tables:
-      - name: prices
+      - name: raw_prices_5m
+        identifier: raw_prices_5m

@@ -41,6 +41,30 @@ services:
       - "8501:8501"
     command: ["streamlit", "run", "app/main.py", "--server.enableCORS=false"]
 
+  admin:
+    build: .
+    image: stock-ml:latest
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    environment:
+      - APP_NAME=${APP_NAME:-Equity Data Platform}
+      - DUCKDB_PATH=${DUCKDB_PATH:-data/app.duckdb}
+      - POSTGRES_URL=${POSTGRES_URL:-postgresql://postgres:postgres@postgres:5432/stock_ml}
+      - STREAMLIT_SERVER_PORT=8502
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+    volumes:
+      - ./data:/app/data
+      - ./app:/app/app
+      - ./admin:/app/admin
+      - ./config:/app/config
+      - ./dbt:/app/dbt
+      - ./scripts:/app/scripts
+    ports:
+      - "8502:8502"
+    command: ["streamlit", "run", "admin/main.py", "--server.enableCORS=false"]
+
   airflow:
     image: apache/airflow:2.10.2
     depends_on:

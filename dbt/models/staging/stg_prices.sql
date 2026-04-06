@@ -4,14 +4,14 @@
     Learning goals:
     - This is a "cleaning" layer: rename columns, cast types, filter nulls.
     - Materialized as a VIEW (zero storage cost, always up-to-date).
-    - Reference the raw source with {{ source('raw', 'prices') }}.
+    - Reference the raw source with {{ source('raw', 'raw_prices_5m') }}.
 
     After running `dbt run`, query this:
         SELECT * FROM stg_prices LIMIT 10;
 */
 
 WITH source AS (
-    SELECT * FROM {{ source('raw', 'prices') }}
+    SELECT * FROM {{ source('raw', 'raw_prices_5m') }}
 ),
 
 cleaned AS (
