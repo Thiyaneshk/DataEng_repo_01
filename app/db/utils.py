@@ -1,23 +1,38 @@
 """Generic DB Schema and Helpers for User Stocks (Watchlist & Holdings)."""
 from typing import Any, Dict, List, Optional
 import duckdb
-from app.db.connection import get_duckdb_connection
+from sqlalchemy import text
+from app.db.connection import get_duckdb_connection, get_connection, get_config
 
 def init_user_tables():
-    with get_duckdb_connection() as conn:
+    cfg = get_config()
+    with get_connection() as conn:
         # Create unified user_stocks table
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS user_stocks (
-                symbol TEXT PRIMARY KEY,
-                quantity DOUBLE DEFAULT 0,
-                avg_cost DOUBLE,
-                tags TEXT,
-                note TEXT,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        # Migrate existing data if tables exist
-        migrate_legacy_data(conn)
+        if cfg.postgres_url:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS user_stocks (
+                    symbol TEXT PRIMARY KEY,
+                    quantity DOUBLE PRECISION DEFAULT 0,
+                    avg_cost DOUBLE PRECISION,
+                    tags TEXT,
+                    note TEXT,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+        else:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS user_stocks (
+                    symbol TEXT PRIMARY KEY,
+                    quantity DOUBLE DEFAULT 0,
+                    avg_cost DOUBLE,
+                    tags TEXT,
+                    note TEXT,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+        # Migrate existing data if tables exist (DuckDB only for now)
+        if not cfg.postgres_url:
+            migrate_legacy_data(conn)
 
 def migrate_legacy_data(conn):
     """Migrate data from separate watchlist and holdings tables to unified user_stocks."""
@@ -57,14 +72,20 @@ def migrate_legacy_data(conn):
 
 def get_all_stocks() -> List[Dict[str, Any]]:
     """Get all user stocks (watchlist + holdings)."""
-    with get_duckdb_connection() as conn:
-        rows = conn.execute("""
+    cfg = get_config()
+    with get_connection() as conn:
+        sql = """
             SELECT symbol, quantity, avg_cost, tags, note, updated_at
             FROM user_stocks
             ORDER BY
                 CASE WHEN quantity > 0 THEN 0 ELSE 1 END,  -- Holdings first
                 updated_at DESC
-        """).fetchall()
+        """
+        if cfg.postgres_url:
+            rows = conn.execute(text(sql)).fetchall()
+        else:
+            rows = conn.execute(sql).fetchall()
+
         return [
             {
                 "symbol": r[0],
@@ -80,19 +101,30 @@ def get_all_stocks() -> List[Dict[str, Any]]:
 
 def get_watchlist_symbols() -> List[str]:
     """Get symbols with quantity = 0."""
-    with get_duckdb_connection() as conn:
-        res = conn.execute("SELECT symbol FROM user_stocks WHERE quantity = 0 OR quantity IS NULL").fetchall()
+    cfg = get_config()
+    with get_connection() as conn:
+        sql = "SELECT symbol FROM user_stocks WHERE quantity = 0 OR quantity IS NULL"
+        if cfg.postgres_url:
+            res = conn.execute(text(sql)).fetchall()
+        else:
+            res = conn.execute(sql).fetchall()
         return [r[0] for r in res]
 
 def get_holdings() -> List[Dict[str, Any]]:
     """Get holdings (quantity > 0)."""
-    with get_duckdb_connection() as conn:
-        rows = conn.execute("""
+    cfg = get_config()
+    with get_connection() as conn:
+        sql = """
             SELECT symbol, quantity, avg_cost, updated_at
             FROM user_stocks
             WHERE quantity > 0
             ORDER BY updated_at DESC
-        """).fetchall()
+        """
+        if cfg.postgres_url:
+            rows = conn.execute(text(sql)).fetchall()
+        else:
+            rows = conn.execute(sql).fetchall()
+
         return [
             {
                 "symbol": r[0],
@@ -106,16 +138,47 @@ def get_holdings() -> List[Dict[str, Any]]:
 def add_or_update_stock(symbol: str, quantity: float = 0, avg_cost: Optional[float] = None,
                        tags: str = "", note: str = ""):
     """Add or update a stock in the unified table."""
-    with get_duckdb_connection() as conn:
-        conn.execute("""
-            INSERT OR REPLACE INTO user_stocks (symbol, quantity, avg_cost, tags, note, updated_at)
-            VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        """, (symbol.upper(), quantity, avg_cost, tags, note))
+    cfg = get_config()
+    with get_connection() as conn:
+        if cfg.postgres_url:
+            from sqlalchemy.dialects.postgresql import insert
+            from sqlalchemy import MetaData, Table
+            from datetime import datetime
+            metadata = MetaData()
+            table = Table('user_stocks', metadata, autoload_with=conn.engine)
+            stmt = insert(table).values(
+                symbol=symbol.upper(),
+                quantity=quantity,
+                avg_cost=avg_cost,
+                tags=tags,
+                note=note,
+                updated_at=datetime.utcnow()
+            ).on_conflict_do_update(
+                index_elements=['symbol'],
+                set_={
+                    'quantity': quantity,
+                    'avg_cost': avg_cost,
+                    'tags': tags,
+                    'note': note,
+                    'updated_at': datetime.utcnow()
+                }
+            )
+            conn.execute(stmt)
+        else:
+            conn.execute("""
+                INSERT OR REPLACE INTO user_stocks (symbol, quantity, avg_cost, tags, note, updated_at)
+                VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            """, (symbol.upper(), quantity, avg_cost, tags, note))
 
 def remove_stock(symbol: str):
     """Remove a stock from the unified table."""
-    with get_duckdb_connection() as conn:
-        conn.execute("DELETE FROM user_stocks WHERE symbol = ?", (symbol.upper(),))
+    cfg = get_config()
+    with get_connection() as conn:
+        sql = "DELETE FROM user_stocks WHERE symbol = :symbol"
+        if cfg.postgres_url:
+            conn.execute(text(sql), {"symbol": symbol.upper()})
+        else:
+            conn.execute("DELETE FROM user_stocks WHERE symbol = ?", (symbol.upper(),))
 
 # Legacy functions for backward compatibility
 def get_watchlist() -> List[Dict[str, Any]]:
