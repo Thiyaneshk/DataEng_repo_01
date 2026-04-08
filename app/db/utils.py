@@ -10,6 +10,17 @@ def init_user_tables():
         # Create unified user_stocks table
         if cfg.postgres_url:
             conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS etl_log (
+                    run_id TEXT PRIMARY KEY,
+                    job_name TEXT,
+                    start_ts TIMESTAMP,
+                    end_ts TIMESTAMP,
+                    status TEXT,
+                    rows_processed INTEGER,
+                    error_message TEXT
+                )
+            """))
+            conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS user_stocks (
                     symbol TEXT PRIMARY KEY,
                     quantity DOUBLE PRECISION DEFAULT 0,
@@ -139,31 +150,27 @@ def add_or_update_stock(symbol: str, quantity: float = 0, avg_cost: Optional[flo
                        tags: str = "", note: str = ""):
     """Add or update a stock in the unified table."""
     cfg = get_config()
+    from datetime import datetime, timezone
     with get_connection() as conn:
         if cfg.postgres_url:
-            from sqlalchemy.dialects.postgresql import insert
-            from sqlalchemy import MetaData, Table
-            from datetime import datetime
-            metadata = MetaData()
-            table = Table('user_stocks', metadata, autoload_with=conn.engine)
-            stmt = insert(table).values(
-                symbol=symbol.upper(),
-                quantity=quantity,
-                avg_cost=avg_cost,
-                tags=tags,
-                note=note,
-                updated_at=datetime.utcnow()
-            ).on_conflict_do_update(
-                index_elements=['symbol'],
-                set_={
-                    'quantity': quantity,
-                    'avg_cost': avg_cost,
-                    'tags': tags,
-                    'note': note,
-                    'updated_at': datetime.utcnow()
-                }
-            )
-            conn.execute(stmt)
+            sql = text("""
+                INSERT INTO user_stocks (symbol, quantity, avg_cost, tags, note, updated_at)
+                VALUES (:symbol, :quantity, :avg_cost, :tags, :note, :updated_at)
+                ON CONFLICT (symbol) DO UPDATE SET
+                    quantity = EXCLUDED.quantity,
+                    avg_cost = EXCLUDED.avg_cost,
+                    tags = EXCLUDED.tags,
+                    note = EXCLUDED.note,
+                    updated_at = EXCLUDED.updated_at
+            """)
+            conn.execute(sql, {
+                "symbol": symbol.upper(),
+                "quantity": quantity,
+                "avg_cost": avg_cost,
+                "tags": tags,
+                "note": note,
+                "updated_at": datetime.now(timezone.utc)
+            })
         else:
             conn.execute("""
                 INSERT OR REPLACE INTO user_stocks (symbol, quantity, avg_cost, tags, note, updated_at)

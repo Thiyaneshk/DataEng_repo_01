@@ -136,6 +136,30 @@
 
 ---
 
+## Phase 1: Postgres Transition & Advanced Indicators ✅
+**Date:** 2025-05-22
+**Status:** Complete
+
+### What Was Done
+1.  **Postgres Integration**:
+    *   Updated `app/db/connection.py` to support Postgres as the primary database using SQLAlchemy.
+    *   Refactored `app/core/etl/prices.py` to implement robust upsert logic (`ON CONFLICT DO NOTHING`) for Postgres.
+    *   Ensured DuckDB remains a fully functional fallback.
+2.  **dbt Transformation Layer**:
+    *   Updated `dbt/profiles.yml` and `dbt/models/sources.yml` for Postgres compatibility.
+    *   Created `dbt/models/marts/fct_financial_indicators.sql` to calculate RSI, EMA (50, 200), and SuperTrend components.
+3.  **Orchestration**:
+    *   Updated `airflow/dags/etl_prices_dag.py` to target Postgres for both ETL and dbt runs.
+4.  **Admin UI**:
+    *   Created `app/views/10_Data_Management.py` for on-demand data refreshing, dbt execution, and database inspection.
+
+### Verification Results
+*   **ETL**: ✅ Successfully loads yfinance data into Postgres.
+*   **dbt**: ✅ Transformations run correctly on Postgres schema.
+*   **UI**: ✅ New admin page provides real-time visibility into pipeline status.
+
+---
+
 ## AI Analyst Timeout Fix ✅
 **Date:** 2026-04-04
 **Status:** Complete
