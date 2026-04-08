@@ -136,27 +136,31 @@
 
 ---
 
-## Phase 1: Postgres Transition & Advanced Indicators ✅
+## Phase 1 & 2: Postgres Analytics Stack & Global Indices ✅
 **Date:** 2025-05-22
 **Status:** Complete
 
 ### What Was Done
-1.  **Postgres Integration**:
-    *   Updated `app/db/connection.py` to support Postgres as the primary database using SQLAlchemy.
-    *   Refactored `app/core/etl/prices.py` to implement robust upsert logic (`ON CONFLICT DO NOTHING`) for Postgres.
-    *   Ensured DuckDB remains a fully functional fallback.
-2.  **dbt Transformation Layer**:
-    *   Updated `dbt/profiles.yml` and `dbt/models/sources.yml` for Postgres compatibility.
-    *   Created `dbt/models/marts/fct_financial_indicators.sql` to calculate RSI, EMA (50, 200), and SuperTrend components.
-3.  **Orchestration**:
-    *   Updated `airflow/dags/etl_prices_dag.py` to target Postgres for both ETL and dbt runs.
-4.  **Admin UI**:
-    *   Created `app/views/10_Data_Management.py` for on-demand data refreshing, dbt execution, and database inspection.
+1.  **Postgres Infrastructure**:
+    *   Updated `app/db/connection.py` to support Postgres as the primary database with SQLAlchemy.
+    *   Refactored `app/core/etl/prices.py` with robust upsert logic using temporary tables.
+    *   Implemented **Medallion Architecture**: Created a **Bronze Layer** (Parquet files in `data/bronze/`) to land raw API data before ingestion.
+2.  **Global Market Expansion**:
+    *   Added support and tracking for major indices: **S&P 500 (^GSPC)**, **TSX (^GSPTSE)**, and **Nifty 50 (^NSEI)**.
+    *   Enhanced **Portfolio Manager** with a "Quick Import" feature for top index constituents.
+3.  **Analytics & Visualization**:
+    *   Developed `fct_equity_features_1d` dbt mart with RSI, EMA 20/50/200, and Bollinger Bands.
+    *   Optimized Streamlit charts to **remove weekend/holiday gaps**, providing a clean, professional financial view.
+4.  **Pipeline Observability**:
+    *   Added an `etl_log` table to track every run (run_id, status, duration, rows).
+    *   Created a monitoring dashboard in the Streamlit Admin page.
+5.  **Documentation & Learning**:
+    *   Created a comprehensive `docs/USER_ADMIN_GUIDE.md` for role-based operating instructions.
 
 ### Verification Results
-*   **ETL**: ✅ Successfully loads yfinance data into Postgres.
-*   **dbt**: ✅ Transformations run correctly on Postgres schema.
-*   **UI**: ✅ New admin page provides real-time visibility into pipeline status.
+*   **ETL**: ✅ Successfully loads multi-region indices into Postgres.
+*   **dbt**: ✅ Financial indicators calculate correctly across all symbols.
+*   **UI**: ✅ Charts are continuous (no weekend gaps) and show all technical overlays.
 
 ---
 
