@@ -12,6 +12,26 @@ def main():
     st.title("🛡️ Admin: Portfolio Manager")
     init_user_tables()
 
+    # --- Quick Import from Indices ---
+    st.header("🏢 Quick Import from Global Indices")
+    indices = {
+        "S&P 500 (US)": ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "BRK-B"],
+        "Nifty 50 (India)": ["RELIANCE.NS", "HDFCBANK.NS", "ICICIBANK.NS", "INFY.NS", "TCS.NS"],
+        "TSX 60 (Canada)": ["RY.TO", "TD.TO", "SHOP.TO", "CP.TO", "CNQ.TO"]
+    }
+
+    col_idx, col_btn = st.columns([3, 1])
+    with col_idx:
+        selected_idx = st.selectbox("Select Index to import constituents", list(indices.keys()))
+    with col_btn:
+        st.write("") # spacing
+        if st.button("📥 Import Top 5"):
+            constituents = indices[selected_idx][:5]
+            for sym in constituents:
+                add_or_update_stock(sym, quantity=0, note=f"Imported from {selected_idx}")
+            st.success(f"Added top constituents from {selected_idx} to watchlist.")
+            st.rerun()
+
     # Add new stock form
     st.header("➕ Add/Edit Stock")
     with st.form("stock_form"):

@@ -9,6 +9,9 @@ version: 2
 models:
   - name: stg_prices
     description: "Cleaned OHLCV market data with derived columns"
+    tests:
+      - unique:
+          column_name: "(symbol || '-' || trade_datetime)"
     columns:
       - name: symbol
         description: "Ticker symbol"
@@ -22,8 +25,14 @@ models:
         description: "Closing price (rounded to 4 decimals)"
         tests:
           - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              inclusive: false
       - name: volume
         description: "Volume traded (cast to BIGINT)"
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
       - name: bar_range
         description: "High minus Low for the bar"
       - name: bar_return_pct

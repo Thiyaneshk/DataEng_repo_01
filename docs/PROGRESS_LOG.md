@@ -136,6 +136,34 @@
 
 ---
 
+## Phase 1 & 2: Postgres Analytics Stack & Global Indices ✅
+**Date:** 2025-05-22
+**Status:** Complete
+
+### What Was Done
+1.  **Postgres Infrastructure**:
+    *   Updated `app/db/connection.py` to support Postgres as the primary database with SQLAlchemy.
+    *   Refactored `app/core/etl/prices.py` with robust upsert logic using temporary tables.
+    *   Implemented **Medallion Architecture**: Created a **Bronze Layer** (Parquet files in `data/bronze/`) to land raw API data before ingestion.
+2.  **Global Market Expansion**:
+    *   Added support and tracking for major indices: **S&P 500 (^GSPC)**, **TSX (^GSPTSE)**, and **Nifty 50 (^NSEI)**.
+    *   Enhanced **Portfolio Manager** with a "Quick Import" feature for top index constituents.
+3.  **Analytics & Visualization**:
+    *   Developed `fct_equity_features_1d` dbt mart with RSI, EMA 20/50/200, and Bollinger Bands.
+    *   Optimized Streamlit charts to **remove weekend/holiday gaps**, providing a clean, professional financial view.
+4.  **Pipeline Observability**:
+    *   Added an `etl_log` table to track every run (run_id, status, duration, rows).
+    *   Created a monitoring dashboard in the Streamlit Admin page.
+5.  **Documentation & Learning**:
+    *   Created a comprehensive `docs/USER_ADMIN_GUIDE.md` for role-based operating instructions.
+
+### Verification Results
+*   **ETL**: ✅ Successfully loads multi-region indices into Postgres.
+*   **dbt**: ✅ Financial indicators calculate correctly across all symbols.
+*   **UI**: ✅ Charts are continuous (no weekend gaps) and show all technical overlays.
+
+---
+
 ## AI Analyst Timeout Fix ✅
 **Date:** 2026-04-04
 **Status:** Complete

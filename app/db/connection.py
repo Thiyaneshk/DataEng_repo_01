@@ -48,11 +48,8 @@ def get_connection():
     cfg = get_config()
     if cfg.postgres_url:
         engine = get_postgres_engine()
-        conn = engine.connect()
-        try:
+        with engine.begin() as conn:
             yield conn
-        finally:
-            conn.close()
     else:
         with get_duckdb_connection() as conn:
             yield conn

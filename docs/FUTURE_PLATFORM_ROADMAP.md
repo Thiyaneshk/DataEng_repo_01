@@ -132,6 +132,27 @@ Outcome: Hands‑on experience with the **Databricks lakehouse** approach and Sp
 
 ---
 
+## Phase 3.5 – The API Layer (FastAPI)
+
+**Goal:** Decouple the data from the UI and provide a programmatic interface for other services.
+
+Planned steps:
+
+1. **FastAPI Scaffold**
+   - Create an `api/` directory.
+   - Implement endpoints:
+     - `GET /stocks`: List current watchlist.
+     - `GET /prices/{symbol}`: Fetch historical prices from Postgres.
+     - `GET /indicators/{symbol}`: Fetch dbt-calculated indicators.
+2. **Asynchronous Patterns**
+   - Learn how to use `asyncio` and `httpx` for non-blocking API calls.
+3. **API Security**
+   - Implement API Keys or JWT (JSON Web Tokens) for secure access.
+
+Outcome: A **production-ready REST API** that sits between your database and any frontend (Streamlit, React, or mobile).
+
+---
+
 ## Phase 4 – LLM / RAG Layer
 
 **Goal:** Build a small research assistant on top of the engineered data.
@@ -160,6 +181,14 @@ Planned ideas:
    - Align infra with the chosen warehouse (Snowflake, Databricks on cloud provider).
 
 Outcome: An **LLM‑aware DE project** that shows you can take engineered data and use it in an intelligent assistant pattern.
+
+### 📚 Tech Stacks to Explore for RAG:
+1. **Vector Databases**: Learn **ChromaDB**, **Pinecone**, or **pgvector** (to keep everything in Postgres).
+2. **Embedding Models**: Explore **HuggingFace** local embeddings or **OpenAI** `text-embedding-3-small`.
+3. **Orchestration Frameworks**:
+   - **LlamaIndex**: Best for structured data and document retrieval.
+   - **LangChain**: Best for complex agentic workflows.
+4. **Agentic Logic**: Learn how to give an LLM "tools" (like your FastAPI endpoints) so it can fetch its own data to answer questions.
 
 ---
 

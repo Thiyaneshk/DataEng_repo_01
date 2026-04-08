@@ -11,6 +11,9 @@ QQQ = { market = "US", type = "etf" }
 "HDFCBANK.NS" = { market = "IN", type = "stock" }
 "LUPIN.NS" = { market = "IN", type = "stock" }
 "RY.TO" = { market = "CA", type = "stock" }
+"^GSPC" = { market = "US", type = "index", name = "S&P 500" }
+"^GSPTSE" = { market = "CA", type = "index", name = "TSX Composite" }
+"^NSEI" = { market = "IN", type = "index", name = "Nifty 50" }
 "BTC-USD" = { market = "CRYPTO", type = "crypto" }
 
 [settings]
